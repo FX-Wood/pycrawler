@@ -1,4 +1,6 @@
 import typer
+from rich.console import Console
+from rich.table import Table
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -27,7 +29,13 @@ def count_words(words: list[str]) -> dict:
     return result
 
 def export_data(data: list[tuple[str, int]]):
-    print(data)
+    table = Table(title=f'Top {len(data)} Words')
+    table.add_column("Word", style="green")
+    table.add_column("Count", style="yellow")
+    for item in data:
+        table.add_row(item[0], str(item[1]))
+    console = Console()
+    console.print(table)
 
 def process_html(html_data: str) -> dict[str, int]:
     """takes a string of html and returns a dict with a wordcount"""
