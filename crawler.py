@@ -28,7 +28,8 @@ def count_words(words: list[str]) -> dict:
 def export_data(data: list[tuple[str, int]]):
     print(data)
 
-def process_html(html_data):
+def process_html(html_data: str) -> dict[str, int]:
+    """takes a string of html and returns a dict with a wordcount"""
     # parse html
     soup = BeautifulSoup(html_data, 'html.parser')
     section_headers = soup.find_all('h2')
@@ -59,8 +60,14 @@ def process_html(html_data):
     sorted_count = {key: value for key, value in sorted(count.items(), key=lambda item: item[1], reverse=True)}
     return sorted_count
 
+def exclude_words(counted_words: dict[str,int], excludes_list: list[str]) -> dict[str,int]:
+    """mutate input word count by removing some words"""
+    for word in excludes_list:
+        counted_words.pop(word, None)
+    return counted_words
+    
 
-def crawl(top: int):
+def crawl(top: int, excludes: list[str]):
     """crawl a given page, for example a wikipedia page, and count words"""
     assert top > 0, "must return at least one wordcount"
     uri = "https://wikipedia.com/wiki/Microsoft"
@@ -68,14 +75,16 @@ def crawl(top: int):
     data = requests.get(uri).text
 
     counted_words = process_html(data)
-    # allow arbitrary number of top words
+    # allow excluding words
+    exclude_words(counted_words, excludes)
     output_data = list(counted_words.items())
+    
+    # allow arbitrary number of top words
     if len(output_data) < top:
         export_data(output_data)
     else:
         export_data(output_data[:top])
-    # allow excluding words
 
 if __name__ == "__main__":
-    crawl(5)
+    crawl(5, ["the"])
 
