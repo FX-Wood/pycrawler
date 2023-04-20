@@ -91,8 +91,18 @@ def crawl(top: int, excludes: list[str]):
     else:
         export_data(output_data[:top])
 
-def main(top: int, excludes: list[str]):
-    print(f'{top},{excludes}')
+def main(
+        excludes: list[str],
+        top: int = typer.Argument(10, help="try '5' (without the quotes)"),
+    ):
+    """
+    crawl the microsoft page of wikipedia
+    and get the top n most frequently used 
+    words of the history section
+
+    for example:
+    python crawler.py "the" "of" "Microsoft" 10
+    """
     crawl(top, excludes)
 
 if __name__ == "__main__":
