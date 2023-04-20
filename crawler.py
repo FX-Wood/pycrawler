@@ -9,12 +9,9 @@ def filter_strings(strings: list[str]) -> list[str]:
     """filter out non-words from the soup output"""
     result = []
     for string in strings:
-        # this is not great, for example it splits
-        # "Traf-O-Data" and MS-DOS into multiple words
-        # if hyphenated words are not common this has less
-        # impact because we're usually interested in the most
-        # common words
-        words = re.findall(r'\w+', string)
+        # https://stackoverflow.com/questions/31910955/regex-to-match-words-with-hyphens-and-or-apostrophes
+        #words = re.findall(r"(?=\S*['-])([a-zA-Z'-]+)", string)
+        words = re.findall(r"\b[a-zA-Z]+(?:['-]?[a-zA-Z]+)*\b", string)
         result.extend(words)
     return result
 

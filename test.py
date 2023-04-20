@@ -25,11 +25,17 @@ class TestFilterStrings(unittest.TestCase):
         
         assert len(result) == 18, f'filter is returning {"too many" if len(result) > 18 else "too few"}'
     
-    # TODO: this is maybe an easy fix, just need to use this stackoverflow answer
-    # https://stackoverflow.com/questions/31910955/regex-to-match-words-with-hyphens-and-or-apostrophes
-    #def testHyphenated(self):
-    #    result = filter_strings(["asdf","asdf","asdf","Traf-O-Data","MS-DOS"])
-    #    assert len(result) == 5, "need to handle hyphenated words"
+    def test_hyphenated(self):
+        result = filter_strings(["asdf","Traf-O-Data","blitzes MS-DOS"])
+        assert len(result) == 4, f'need to handle hyphenated words, {result}'
+
+    def test_contractions(self):
+        result = filter_strings(["asdf","it's","they're","manakin skywalker ain't"])
+        assert len(result) == 6, f'need to handle contractions {result}'
+
+    def test_single_letters(self):
+        result = filter_strings(["a brown cow", "jumped", "over the moon"])
+        assert len(result) == 7, f'need to handle single letters, {result}'
 
 class TestExcludeWords(unittest.TestCase):
     def test_single_word(self):
