@@ -1,3 +1,4 @@
+import typer
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -85,6 +86,9 @@ def crawl(top: int, excludes: list[str]):
     else:
         export_data(output_data[:top])
 
-if __name__ == "__main__":
-    crawl(5, ["the"])
+def main(top: int, excludes: list[str]):
+    print(f'{top},{excludes}')
+    crawl(top, excludes)
 
+if __name__ == "__main__":
+    typer.run(main)
