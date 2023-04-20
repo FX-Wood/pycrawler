@@ -1,3 +1,4 @@
+from typing import Optional
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -92,8 +93,8 @@ def crawl(top: int, excludes: list[str]):
         export_data(output_data[:top])
 
 def main(
-        excludes: list[str],
         top: int = typer.Argument(10, help="try '5' (without the quotes)"),
+        excludes: list[str] = typer.Argument(None, help="try 'a' 'of' 'in'"),
     ):
     """
     crawl the microsoft page of wikipedia
