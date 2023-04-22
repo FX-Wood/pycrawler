@@ -1,10 +1,6 @@
 import unittest
 from pathlib import Path
-from crawler import crawl, exclude_words, filter_strings
-
-THIS_DIR = Path(__file__).parent
-
-test_html = THIS_DIR / 'wikipedia-microsoft.html'
+from crawler import crawl, exclude_words, filter_strings, get_section_header
 
 class TestCrawl(unittest.TestCase):
     def test_top_too_low(self):
@@ -48,7 +44,19 @@ class TestExcludeWords(unittest.TestCase):
         print(data.keys())
         assert "hello" not in filtered_data, "excluded word was not excluded"
 
+class TestGetSectionHeader(unittest.TestCase):
+    html_data = """
+            <h2><span class="mw-headline" id="Corporate_identity">Corporate identity</span></h2>
+            <h2><span class="mw-headline" id="History">History</span></h2>'
+            <h2><span class="mw-headline" id="Corporate_affairs">Corporate affairs</span></h2>
+        """
+    def test_gets_history_header(self):
+        result = get_section_header("History", self.html_data)
+        assert "History" in result.strings, "couldn't find correct header"
 
+    def test_raises_for_header_not_found(self):
+        with self.assertRaises(LookupError):
+            get_section_header("Farfetched", self.html_data)
 
 if __name__ == '__main__':
     unittest.main()

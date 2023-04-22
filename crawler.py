@@ -2,7 +2,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, element
 import re
 
 def filter_strings(strings: list[str]) -> list[str]:
@@ -26,6 +26,7 @@ def count_words(words: list[str]) -> dict:
     return result
 
 def export_data(data: list[tuple[str, int]]):
+    """use 'rich' library to print to console"""
     table = Table(title=f'Top {len(data)} Words')
     table.add_column("Word", style="green")
     table.add_column("Count", style="yellow")
@@ -34,31 +35,42 @@ def export_data(data: list[tuple[str, int]]):
     console = Console()
     console.print(table)
 
-def process_html(html_data: str) -> dict[str, int]:
-    """takes a string of html and returns a dict with a wordcount"""
+def get_section_header(filter: str, html_data) -> element.Tag:
     # parse html
     soup = BeautifulSoup(html_data, 'html.parser')
     section_headers = soup.find_all('h2')
     # limit by section
-    history_header = section_headers[0]
     for header in section_headers:
         for child in header.contents:
-            if "History" in child:
-                history_header = header
+            if filter in child:
+                return header
+    raise LookupError()
 
-    history_text_contents = []
-    next_sibling = history_header.find_next_sibling()
+
+
+def process_html(filter: str, html_data: str) -> dict[str, int]:
+    """takes a string of html and returns a dict with a wordcount"""
+    try:
+        target_header = get_section_header(filter, html_data)
+    except LookupError:
+        print(f'Section header {filter} not found')
+        exit()
+
+    section_contents = []
+    next_sibling = target_header.find_next_sibling()
     while True:
+        if next_sibling is None:
+            break
         # currently wikipedia uses h2s for section headings
         if 'h2' in next_sibling.name:
             break
         # don't save style tags, captions, etc
         if 'p' in next_sibling.name:
             for string in next_sibling.stripped_strings:
-                history_text_contents.append(string)
+                section_contents.append(string)
         next_sibling = next_sibling.find_next_sibling()
 
-    clean_text = filter_strings(history_text_contents)
+    clean_text = filter_strings(section_contents)
 
     # count words in html
     count = count_words(clean_text)
@@ -71,16 +83,16 @@ def exclude_words(counted_words: dict[str,int], excludes_list: list[str]) -> dic
     for word in excludes_list:
         counted_words.pop(word, None)
     return counted_words
-    
 
 def crawl(top: int, excludes: list[str]):
     """crawl a given page, for example a wikipedia page, and count words"""
     assert top > 0, "must return at least one wordcount"
     uri = "https://wikipedia.com/wiki/Microsoft"
+    filter = "History"
     # get uri data
     data = requests.get(uri).text
 
-    counted_words = process_html(data)
+    counted_words = process_html(filter, data)
     # allow excluding words
     exclude_words(counted_words, excludes)
     output_data = list(counted_words.items())
@@ -101,7 +113,7 @@ def main(
     words of the history section
 
     for example:
-    python crawler.py "the" "of" "Microsoft" 10
+    python crawler.py 10 "the" "of" "Microsoft"
     """
     crawl(top, excludes)
 
